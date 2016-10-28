@@ -2,9 +2,6 @@
 
 # Bad_Apple
 
-Contact me at:
-Email: jake.jackson97@yahoo.co.uk
-
 Usage
 ========
 
