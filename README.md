@@ -1,7 +1,6 @@
 ![Supported Python versions](https://img.shields.io/badge/python-2.7-blue.svg)
 
 # Bad_Apple
-Generates a new C4ALL 1.1 json file which is compatible with the Hubstream Intelligence Agent &amp; CAID platform
 
 Contact me at:
 Email: jake.jackson97@yahoo.co.uk
