@@ -11,7 +11,6 @@ import Tkconstants
 
 root = tk.Tk()
 global loop
-global loop1
 
 def mount_disk():
     print('Please select the .dmg file you would like to decrypt.')
