@@ -8,9 +8,9 @@ import string
 from Tkinter import *
 import tkFileDialog
 import Tkconstants
- 
+
 root = Tk()
- 
+
 def mount_disk():
     global GUID
     global GUIDstr
@@ -31,15 +31,12 @@ def mount_disk():
         while (loop == True):
             for line in log:
                 if 'Logical Volume ' in line:
-                    GUID = line.split('Logical Volume ')[1]
-                    if (guid_pattern.match(GUID)):
-                        f = open( 'GUIDtemp.txt', 'rw' )
-                        f.write(GUID)
-                        GUIDstr = f.read()
-                        f.close
-                        print('Image mounted and locked partition found. GUID: ' + GUIDstr)
+                    GUIDtemp = line.split('Logical Volume ')[1].rstrip()
+                    if (guid_pattern.match(GUIDtemp)):
+                        GUID = str(GUIDtemp)
+                        print('Image mounted and locked partition found. GUID: %s' % (GUID))
                         start_cracking = raw_input('Do you want to begin cracking? [Y/N]: ')
-                        if start_cracking in ('y' or 'Y'):
+                        if start_cracking in ('y' or 'Y'):                            
                             password_attempt()
                         else:
                             print('Thank you for using Bad_Apple')
@@ -48,14 +45,13 @@ def mount_disk():
                         loop = True
                 else:
                     loop = True
-             
+
 def password_attempt():
+    keepTrack = 0
     print("getting this far!!!")
     with open('numCodeDict.txt', 'r') as f:
         for password in f:
-            unlock_command = subprocess.Popen('diskutil cs unlockVolume %s -passphrase %s' % (GUIDstr, password), shell=True, stdout=subprocess.PIPE).stdout
-            #with open("log.txt", 'a') as fo:
-                #fo.write(unlock_command.read())
+            unlock_command = subprocess.Popen('diskutil cs unlockVolume %r -passphrase %s' % (GUID, password), shell=True, stdout=subprocess.PIPE).stdout
             unlock_output = unlock_command.read()
             if 'unlocked' in unlock_output:
                 print('Unlocked with the following password: %s' % (password))
@@ -65,16 +61,21 @@ def password_attempt():
                     print('Please select the desired ouput directory.')
                     output_loc = tkFileDialog.askdirectory()
                     file_name = raw_input('Please enter the desired filename (e.g. filename-DECRYPTED.dd): ')
+                    print('Ejecting disk for acquisition.')
                     os.system('diskutil eject %s' % (GUID))
                     os.system('sudo pv -tpreb /dev/disk%s | dd of=%s/%s bs=1m' % (allocated_disk, output_loc, file_name))
                     quit()
                 else:
                     print('Thank you for using Bad_Apple')
                     quit()
- 
+            else:
+                keepTrack += 1
+                print('%d passwords attempted.' % (keepTrack))
+                
+
 os.system('clear')
 print('Welcome to Bad_Apple\n')
 time.sleep(0.5)
- 
+
 global loop
 mount_disk()
