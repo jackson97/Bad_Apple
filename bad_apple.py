@@ -12,27 +12,17 @@ import Tkconstants
 
 
 def mount_disk():
-    global GUID
-    global GUIDstr
-    loop = True
     print('Please select the .dmg file you would like to decrypt.')
     disk_to_mount = tkFileDialog.askopenfilename()
     print (disk_to_mount)
     os.system('hdiutil attach -nomount %s' % (disk_to_mount))
     chkdisk_command = subprocess.Popen('diskutil cs list', shell=True, stdout=subprocess.PIPE).stdout
     chkdisk_output = chkdisk_command.read()
-    old_stdout = sys.stdout
-    with open('temp.txt', 'w') as t:
-        sys.stdout = t
-        print chkdisk_output
-        sys.stdout = old_stdout
-    with open('temp.txt', 'r') as log:
-        guid_pattern = re.compile('^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$')
-        while (loop == True):
-            for line in log:
-                if 'Logical Volume ' in line:
-                    GUIDtemp = line.split('Logical Volume ')[1].rstrip()
-                    if (guid_pattern.match(GUIDtemp)):
+    guid_pattern = re.compile('^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$')
+    for line in chkdisk_output:
+        if 'Logical Volume' in line:
+            GUIDtemp = line.split('Logical Volume ')[1].rstrip()
+            if (guid_pattern.match(GUIDtemp)):
                         GUID = str(GUIDtemp)
                         print('Image mounted and locked partition found. GUID: %s' % (GUID))
                         start_cracking = raw_input('Do you want to begin cracking? [Y/N]: ')
