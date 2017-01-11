@@ -9,7 +9,7 @@ from Tkinter import *
 import tkFileDialog
 import Tkconstants
 
-root = Tk()
+
 
 def mount_disk():
     global GUID
@@ -74,6 +74,8 @@ def password_attempt():
                 print('Thank you for using Bad_Apple')
                 quit()
 
+root = Tk()
+              
 os.system('clear')
 print('Welcome to Bad_Apple\n')
 time.sleep(0.5)
