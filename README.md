@@ -7,10 +7,6 @@ Usage
 
 This script will only work for OS X images which have been converted to .dd (the first file being re-named to .dmg).
 
-When commencing this script ensure that you have recorded the GUID for the core storage drive you wish to unlock.
-
-
-
 To Do
 ========
 1. Include the option to create case specific keyword lists.
