@@ -9,8 +9,6 @@ from Tkinter import *
 import tkFileDialog
 import Tkconstants
 
-
-
 def mount_disk():
     print('Please select the .dmg file you would like to decrypt.')
     disk_to_mount = tkFileDialog.askopenfilename()
