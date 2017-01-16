@@ -11,5 +11,5 @@ To Do
 ========
 1. Include the option to create case specific keyword lists.
 2. Incorportate timekeeping i.e. estimated time remaining etc.
-3. Add capacity to stop the script once a password is found.
+3. Add capacity to stop the script once a password is found. (DONE)
 4. Add GUI interface.
