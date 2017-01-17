@@ -11,10 +11,13 @@ Usage
 This script will only work for OS X images which have been converted to .dd (the first file being re-named to .dmg).
 
 Dependancies   ||  How to Install
-=============================================
+=================================================
 Tkinter        ||  brew install Tkinter
+=================================================
 progressbar    ||  sudo easy_install progressbar
+=================================================
 dcfldd         ||  sudo easy_install dcfldd
+=================================================
 
 To Do
 ========
