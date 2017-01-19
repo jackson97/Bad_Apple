@@ -10,6 +10,15 @@ import tkFileDialog
 import Tkconstants
 import progressbar
 
+def user_info():
+    global examinerName
+    global caseNumber
+    global exhibitRef
+    print('Please enter the case details. (Seperate with "-")\n')
+    examinerName = raw_input('Examiner Name: ')
+    caseNumber = raw_input('Case Number: ')
+    exhibitRef = raw_input('Exhibit Ref: ')
+
 def mount_disk():
     global GUID
     global GUIDstr
@@ -25,10 +34,10 @@ def mount_disk():
         sys.stdout = t
         print chkdisk_output
         sys.stdout = old_stdout
-    with open('temp.txt', 'r') as log:
+    with open('temp.txt', 'r') as GUIDlog:
         guid_pattern = re.compile('^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$')
         while (loop == True):
-            for line in log:
+            for line in GUIDlog:
                 if 'Logical Volume ' in line:
                     GUIDtemp = line.split('Logical Volume ')[1].rstrip()
                     if (guid_pattern.match(GUIDtemp)):
@@ -79,14 +88,28 @@ def password_attempts():
 
 def acquireDisk():
     print('Please select the desired ouput directory.')
-    output_loc = tkFileDialog.askdirectory()
-    file_name = raw_input('Please enter the desired filename (e.g. filename-DECRYPTED(.dd assumed)): ')
+    outputLoc = tkFileDialog.askdirectory()
+    fileName = ('%s-%s-DECRYPTED' % (caseNumber, exhibitRef))
     print('Ejecting disk for acquisition.')
     os.system('diskutil eject %s' % (GUID))
     print('\nAcquiring unlocked partition.')
-    os.system('sudo dcfldd if=/dev/disk%s hash=md5 sizeprobe=if bs=1m of=%s/%s vf=%s/%s.dd' % (allocatedDisk, output_loc, file_name, output_loc, file_name))
-    print('\nVerifying acquisition.')
-    os.system('sudo dcfldd if=/dev/disk%s status=on vf=%s/%s.dd' % (allocatedDisk, output_loc, file_name))
+    os.chdir('%s' % (outputLoc))
+    with open('%s-log.txt' % (fileName), 'w') as log:
+        log.write('Examiner Name: %s\n' % (examinerName))
+        log.write('Case Number: %s\n' % (caseNumber))
+        log.write('Exhibit Reference: %s\n' % (exhibitRef))
+        log.close()
+    os.system('sudo dc3dd if=/dev/disk%s hash=md5 hof=%s/%s.dd log=%s-log.txt' % (allocatedDisk, outputLoc, fileName, fileName))
+    #Replacing [ok] in log with [Verification Successful] for readablility.
+    f1 = open('%s-log.txt' % (fileName), 'r')
+    f2 = open('%s-log.txt.tmp' % (fileName), 'w')
+    for line in f1:
+        f2.write(line.replace('[ok]', '[Verification Successful]'))
+    f1.close()
+    f2.close()
+
+    os.system('%s-log.txt' % (fileName))
+    os.rename('%s-log.txt.tmp' % (fileName),'%s-log.txt' % (fileName))
     quit()
 
 root = Tk()
@@ -98,4 +121,6 @@ time.sleep(0.5)
 global loop
 start_time=("Process started - [{0}]".format(time.strftime("%H:%M:%S")))
 
+user_info()
+os.system('clear')
 mount_disk()
