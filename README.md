@@ -14,7 +14,7 @@ This script will only work for OS X images which have been converted to .dd (the
 | ------------- | ------------------------------ |
 | Tkinter       |  brew install Tkinter          |
 | progressbar   |  sudo easy_install progressbar |
-| dcfldd        |  sudo easy_install dcfldd      |
+| dc3dd         |  brew install dc3dd            |
 
 To Do
 ========
