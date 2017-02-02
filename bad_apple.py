@@ -49,10 +49,14 @@ def userInfo():
 def mountDisk():
     global GUID
     loop = True
+    #Prompts the user to select a .dmg file they would like to decrypt and assigns the path to a variable.
     print('Please select the .dmg file you would like to decrypt.')
     diskToMount = tkFileDialog.askopenfilename()
+    #Printing the .dmg path for testing purposes.
     print (diskToMount)
+    #Attaching the specified .dmg file to the systme witghout mounting it to preserve the integrity of the evidence.
     os.system('hdiutil attach -nomount %s' % (diskToMount))
+    #Checks the current core storage volumes and finds the GUID of the encrypted partition.
     chkdiskCommand = subprocess.Popen('diskutil cs list', shell=True, stdout=subprocess.PIPE).stdout
     chkdiskOutput = chkdiskCommand.read()
     oldStdout = sys.stdout
@@ -68,9 +72,12 @@ def mountDisk():
                     GUIDtemp = line.split('Logical Volume ')[1].rstrip()
                     if (guidPattern.match(GUIDtemp)):
                         GUID = str(GUIDtemp)
+                        #Once the GUID is found it is stored as a variable. A message is printed informing the user it has been found.
                         print('Image mounted and locked partition found. GUID: %s' % (GUID))
+                        #Asks the user whether they would like to begin cracking? Error handling to be added in the future.
                         startCracking = raw_input('Do you want to begin cracking? [Y/N]: ')
-                        if startCracking in ('y' or 'Y'):                           
+                        if startCracking in ('y' or 'Y'):   
+                            #Calling the passwordAttempts Function.                        
                             passwordAttempts()
                         else:
                             print('Thank you for using Bad_Apple')
@@ -81,31 +88,50 @@ def mountDisk():
                     loop = True
 
 def passwordAttempts():
+    #Calculating the time the program was started.
+    startTime=("Process started - [{0}]".format(time.strftime("%H:%M:%S")))
     global allocatedDisk
+    #Opens the dictionary file.
     dictFile = open('dictFile.txt', 'rw')
+    #Sets the tracking variable.
     keepTrack = 0
     print('\n')
+    #Sets the progressbar widget.
     bar = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+    #Reads the dictionary file into a list, in alphabetical order.
     dict = []
     with dictFile as f:
         for line in f:
             dict.append(line.strip())
     dict.sort()
     bar.start()
+    #Loops through the passwords in the dictionary list.
     for password in dict:
+        #Incerements the tracking variable.
         keepTrack += 1
+        #Updates the progressbar along with the tracking variable.
         bar.update(keepTrack)
+        #Attempts each password in the dictionary list using the GUID variable set earlier. Captures the output of this command.
         unlockCommand = subprocess.Popen('diskutil cs unlockVolume %r -passphrase %s' % (GUID, password), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
         unlockOutput = unlockCommand.read()
+        #Checks for the keyword 'unlocked' in the captured output. If 'unlocked' is found the partition has been derypted.
         if 'unlocked' in unlockOutput:
+            #Calculating the time the program was started.
             endTime=("Process completed - [{0}]".format(time.strftime("%H:%M:%S")))
+            #Calculates the time taken by the program to crack the drive.
             print('\n\n{0} {1}\n'.format(startTime, endTime))
+            #Prints the number of passwords attempted.
             print('%d passwords attempted.\n' % (keepTrack))
+            #Prints the output from the successfull decryption command.
             print(unlockOutput)
+            #Prints the correct password for the decrypted partition.
             print('Unlocked with the following password: %s\n' % (password))
+            #Sets the allocatedDisk variable using the output from the successfull decryption command.
             allocatedDisk = int(re.search(r'\d+', unlockOutput).group())
+            #Asks the user whether they want to acquire the unlocked partition? Error handling to be added in the future.
             imagePartition = raw_input('Do you want to acquire the unlocked partition? [Y/N]: ')
             if imagePartition in ('y' or 'Y'):
+                #Calling the acquireDisk Function.
                 acquireDisk()
             else:
                 print('Thank you for using Bad_Apple.')
@@ -155,9 +181,6 @@ print('Welcome to Bad_Apple\n')
 time.sleep(0.5)
 
 global loop
-#Calculating the time the program was started.
-startTime=("Process started - [{0}]".format(time.strftime("%H:%M:%S")))
-
 #Calling the userInfo Function.
 userInfo()
 #Clearing the screen.
