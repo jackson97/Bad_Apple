@@ -20,4 +20,5 @@ To Do
 ========
 1. Include the option to create case specific keyword lists.
 2. Incorportate timekeeping i.e. estimated time remaining etc.
+3. Create step-by-step guide for usage.
 4. Add GUI interface.
