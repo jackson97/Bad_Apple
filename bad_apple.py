@@ -36,13 +36,22 @@ import tkFileDialog
 import Tkconstants
 import progressbar
 
+root = Tk()
+
 def userInfo():
+    loop = True
     #Prompting the user to input the case details. Error handling to be added in the future.
     global examinerName
     global caseNumber
     global exhibitRef
     print('Please enter the case details. (Seperate with "-")\n')
-    examinerName = raw_input('Examiner Name: ')
+    while (loop == True):
+        examinerName = raw_input('Examiner Name: ')
+        if '/' in examinerName:
+            print('Please seperate with "-"\n')
+            loop = True
+        else:
+            loop = False
     caseNumber = raw_input('Case Number: ')
     exhibitRef = raw_input('Exhibit Ref: ')
 
@@ -76,43 +85,59 @@ def mountDisk():
                         print('Image mounted and locked partition found. GUID: %s' % (GUID))
                         #Asks the user whether they would like to begin cracking? Error handling to be added in the future.
                         startCracking = raw_input('Do you want to begin cracking? [Y/N]: ')
-                        if startCracking in ('y' or 'Y'):   
-                            #Calling the passwordAttempts Function.                        
-                            passwordAttempts()
-                        else:
-                            print('Thank you for using Bad_Apple')
-                            quit()
+                        while (loop == True): 
+                            if startCracking in ('y' or 'Y'):
+                                passwordAttempts()
+                            else:
+                                print('Thank you for using Bad_Apple')
+                                quit()
                     else:
                         loop = True
                 else:
                     loop = True
-
+    
 def passwordAttempts():
+    loop = True
+    os.system('clear')
+    print('''
+
+Use built in wordlist                    |  [1]  |
+
+Select a Case Specific wordlist          |  [2]  |
+
+    ''')
+    crackingOption = raw_input('Please select an option. [1 or 2]: ')                
+    #Calling the passwordAttempts Function.
+    if crackingOption == '1':
+        listToUse = ('wordlist.txt')
+    elif crackingOption == '2':
+        listToUse = tkFileDialog.askopenfilename()
+    else:
+        print('Please select a valid option.')
+        os.system('sleep 1')
+        os.system('clear')
     #Calculating the time the program was started.
-    startTime=("Process started - [{0}]".format(time.strftime("%H:%M:%S")))
+    startTime = ("Process started - [{0}]".format(time.strftime("%H:%M:%S")))
     global allocatedDisk
     #Opens the dictionary file.
-    dictFile = open('dictFile.txt', 'rw')
+    wordList = open(listToUse, 'rw')
     #Sets the tracking variable.
+    lineCount = 0
     keepTrack = 0
     print('\n')
-    #Sets the progressbar widget.
-    bar = progressbar.ProgressBar(widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
     #Reads the dictionary file into a list, in alphabetical order.
     dict = []
-    with dictFile as f:
+    with wordList as f:
         for line in f:
+            lineCount += 1
             dict.append(line.strip())
-    dict.sort()
-    bar.start()
+    #dict.sort()
     #Loops through the passwords in the dictionary list.
     for password in dict:
         #Incerements the tracking variable.
-        keepTrack += 1
         #Updates the progressbar along with the tracking variable.
-        bar.update(keepTrack)
         #Attempts each password in the dictionary list using the GUID variable set earlier. Captures the output of this command.
-        unlockCommand = subprocess.Popen('diskutil cs unlockVolume %r -passphrase %s' % (GUID, password), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+        unlockCommand = subprocess.Popen('diskutil cs unlockVolume %s -passphrase %r' % (GUID, password), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
         unlockOutput = unlockCommand.read()
         #Checks for the keyword 'unlocked' in the captured output. If 'unlocked' is found the partition has been derypted.
         if 'unlocked' in unlockOutput:
@@ -136,7 +161,21 @@ def passwordAttempts():
             else:
                 print('Thank you for using Bad_Apple.')
                 quit()
-
+        elif keepTrack == lineCount:
+            os.system('clear')
+            sys.stdout.write("\r%i Passwords attempted out of %i\n" % (keepTrack, lineCount))
+            os.system('sleep 1')
+            anotherOption = raw_input('Password not found, would you like to try again with a different option? [y or N]: ')
+            while (loop == True): 
+                if anotherOption in ('y' or 'Y'):
+                    passwordAttempts()
+                else:
+                    print('Thank you for using Bad_Apple')
+                    quit()
+        else:
+            sys.stdout.write("\r%i Passwords attempted out of %i" % (keepTrack, lineCount))
+            keepTrack += 1
+            
 def acquireDisk():
     #Prompting user for an output directory.
     print('Please select the desired ouput directory.')
@@ -146,35 +185,21 @@ def acquireDisk():
     print('\nAcquiring unlocked partition.')
     #Changing the working directory to the specified output location in order to save the acquisition log there as well.
     os.chdir('%s' % (outputLoc))
-    #Writing the details entered in the userInfo Function to the beginning of the acquisition log.
-    with open('%s-log.txt' % (fileName), 'w') as log:
-        log.write('Examiner Name: %s\n' % (examinerName))
-        log.write('Case Number: %s\n' % (caseNumber))
-        log.write('Exhibit Reference: %s\n' % (exhibitRef))
-        log.close()
     #Imaging the unlocked partition.
-    os.system('sudo dc3dd if=/dev/disk%s hash=md5 hash=sha1 hof=%s/%s.dd log=%s-log.txt' % (allocatedDisk, outputLoc, fileName, fileName))
-    #Replacing '[ok]' in log with '[Verification Successful]' for readablility.
-    f1 = open('%s-log.txt' % (fileName), 'r')
-    f2 = open('%s-log.txt.tmp' % (fileName), 'w')
-    for line in f1:
-        f2.write(line.replace('[ok]', '[Verification Successful]'))
-    f1.close()
-    f2.close()
-    #Replacing 'dc3dd' in log with 'Imaging' for readablility.
-    f1 = open('%s-log.txt' % (fileName), 'r')
-    f2 = open('%s-log.txt.tmp' % (fileName), 'w')
-    for line in f1:
-        f2.write(line.replace('dc3dd', 'Imaging'))
-    f1.close()
-    f2.close()
-    
-    #Resolving temporary logs.
-    os.system('rm %s-log.txt' % (fileName))
-    os.rename('%s-log.txt.tmp' % (fileName),'%s-log.txt' % (fileName))
+    os.system('ewfacquire -t %s/%s -w -o 0 -C "%s" -e "%s" -E "%s" -D "Imaged to external HDD using Bad_apple." -N "Decrypted partition of exhibit %s from DFU REF: %s" -M physical -c none -P 512 -f encase6 -r 10 -b 64 -S 640.0MiB -m fixed -g 64 -v -d sha1 /dev/disk%s' % (outputLoc, fileName, caseNumber, examinerName, exhibitRef, exhibitRef, caseNumber, allocatedDisk))
+    #Prints the acquisition report to a log.
+    reportCommand = subprocess.Popen('ewfinfo -d dm %s/%s.E01' % (outputLoc, fileName), shell=True, stdout=subprocess.PIPE).stdout
+    reportOutput = reportCommand.read()
+    oldStdout = sys.stdout
+    with open('"%s"-"%s"-Acquisition Log.txt' % (caseNumber, exhibitRef), 'w') as t:
+        sys.stdout = t
+        print reportOutput
+        sys.stdout = oldStdout
+    #Verifying the produced .E01 files.
+    os.system('ewfverify -d sha1 -l %s/%s-VerifyLog.txt %s/%s.E01' % (outputLoc, fileName, outputLoc, fileName))
+    #Ejecting unlocked partition.
+    os.system('diskutil eject %s' % outputLoc)
     quit()
-
-root = Tk()
 
 os.system('clear')
 print('Welcome to Bad_Apple\n')
