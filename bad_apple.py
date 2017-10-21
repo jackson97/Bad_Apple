@@ -36,9 +36,38 @@ import tkFileDialog
 import Tkconstants
 import progressbar
 
-root = Tk()
+def clicked(event):
+	#Place Holder
+	print(" ")
 
 def userInfo():
+    root = Tk()
+    root.title("Bad Apple")
+    
+    root.geometry("450x165")
+
+    exam_name_label = Label(root, text="Examiner Name:")
+    exam_name_label.pack()
+
+    exam_name_text_box = Entry(root, bd=1)
+    exam_name_text_box.pack()
+
+    case_name_label = Label(root, text="Case Name:")
+    case_name_label.pack()
+
+    case_name_text_box = Entry(root, bd=1)
+    case_name_text_box.pack()
+
+    ex_ref_label = Label(root, text="Exhibit Ref:")
+    ex_ref_label.pack()
+
+    ex_ref_text_box = Entry(root, bd=1)
+    ex_ref_text_box.pack()
+    
+    but = Button(root, text='Save')
+    but.bind("<Button-1>", clicked)
+    but.pack()
+        
     loop = True
     #Prompting the user to input the case details. Error handling to be added in the future.
     global examinerName
