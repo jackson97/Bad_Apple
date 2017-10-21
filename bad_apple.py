@@ -84,7 +84,7 @@ class apple:
             self.caseNumber = self.caseNumber.replace("/","-")
         
         #These print statements are an example of how to call the variables
-	    print("Case Info:")
+	print("Case Info:")
         print(self.caseNumber)
         print(self.exhibitRef)
         print(self.examinerName)
