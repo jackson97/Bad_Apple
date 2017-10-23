@@ -32,7 +32,7 @@ import re
 import string
 import tkFileDialog
 import Tkconstants
-from sys import platform
+from sys import platform as _platform
 from Tkinter import *
 
 class apple:
@@ -89,7 +89,7 @@ class apple:
         print(self.examinerName)
         print("")
         
-        if platform == "darwin":
+        if _platform == "darwin":
             self.mountDisk()
         else:
             self.popupBonus()
