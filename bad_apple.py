@@ -30,9 +30,10 @@ import subprocess
 import datetime
 import re
 import string
-from Tkinter import *
 import tkFileDialog
 import Tkconstants
+from sys import platform as _platform
+from Tkinter import *
 
 class apple:
 		   
@@ -82,13 +83,27 @@ class apple:
             self.caseNumber = self.caseNumber.replace("/","-")
         
         #These print statements are an example of how to call the variables
-	print("Case Info:")
+	    print("Case Info:")
         print(self.caseNumber)
         print(self.exhibitRef)
         print(self.examinerName)
         print("")
         
-        self.mountDisk()
+        if _platform == "darwin":
+            self.mountDisk()
+        else:
+            self.popupBonus()
+
+    def popupBonus(self):
+        toplevel = Toplevel()
+        toplevel.title("WARNING!")
+        toplevel.geometry("350x80")
+        label1 = Label(toplevel, text="No Darwin based operating system detected", height=0, width=50)
+        label1.pack()
+        label1 = Label(toplevel, text="Unable to continue...", height=0, width=50)
+        label1.pack()
+        button = Button (toplevel, text="Close", command=toplevel.destroy)
+        button.pack()
 
     def mountDisk(self):
         global GUID
