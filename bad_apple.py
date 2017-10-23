@@ -10,11 +10,10 @@
 #This script will only work for OS X images which have been converted to .dd (the first file being re-named to .dmg).
 
 #|-----------------------------------------------|
-#| Dependancies |	How to Install               |
+#| Dependancies |	How to Install           |
 #|-----------------------------------------------|
-#| Tkinter	    |  brew install Tkinter          |
-#| progressbar  |  sudo easy_install progressbar |
-#| dc3dd	    |  brew install dc3dd            |
+#| Tkinter	    |  brew install Tkinter      |
+#| dc3dd	    |  brew install libewf       |
 #|-----------------------------------------------|
 
 #To Do
@@ -34,7 +33,6 @@ import string
 from Tkinter import *
 import tkFileDialog
 import Tkconstants
-import progressbar
 
 class apple:
 		   
@@ -124,8 +122,7 @@ class apple:
                             startCracking = raw_input('Do you want to begin cracking? [Y/N]: ')
                             while (loop == True): 
                                 if startCracking in ('y' or 'Y'):
-                                    #passwordAttempts()
-                                    print("func replacement")
+                                    self.passwordAttempts()
                                 else:
                                     print('Thank you for using Bad_Apple')
                                     quit()
@@ -161,7 +158,7 @@ class apple:
         wordList = open(listToUse, 'rw')
         #Sets the tracking variable.
         lineCount = 0
-        keepTrack = 0
+        keepTrack = 1
         print('\n')
         #Reads the dictionary file into a list, in alphabetical order.
         dict = []
@@ -173,7 +170,6 @@ class apple:
         #Loops through the passwords in the dictionary list.
         for password in dict:
             #Incerements the tracking variable.
-            #Updates the progressbar along with the tracking variable.
             #Attempts each password in the dictionary list using the GUID variable set earlier. Captures the output of this command.
             unlockCommand = subprocess.Popen('diskutil cs unlockVolume %s -passphrase %r' % (GUID, password), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
             unlockOutput = unlockCommand.read()
@@ -183,19 +179,17 @@ class apple:
                 endTime=("Process completed - [{0}]".format(time.strftime("%H:%M:%S")))
                 #Calculates the time taken by the program to crack the drive.
                 print('\n\n{0} {1}\n'.format(startTime, endTime))
-                #Prints the number of passwords attempted.
-                print('%d passwords attempted.\n' % (keepTrack))
                 #Prints the output from the successfull decryption command.
                 print(unlockOutput)
                 #Prints the correct password for the decrypted partition.
                 print('Unlocked with the following password: %s\n' % (password))
                 #Sets the allocatedDisk variable using the output from the successfull decryption command.
-                allocatedDisk = int(re.search(r'\d+', unlockOutput).group())
+                self.allocatedDisk = int(re.search(r'\d+', unlockOutput).group())
                 #Asks the user whether they want to acquire the unlocked partition? Error handling to be added in the future.
                 imagePartition = raw_input('Do you want to acquire the unlocked partition? [Y/N]: ')
                 if imagePartition in ('y' or 'Y'):
                     #Calling the acquireDisk Function.
-                    acquireDisk()
+                    self.acquireDisk()
                 else:
                     print('Thank you for using Bad_Apple.')
                     quit()
@@ -224,7 +218,7 @@ class apple:
         #Changing the working directory to the specified output location in order to save the acquisition log there as well.
         os.chdir('%s' % (outputLoc))
         #Imaging the unlocked partition.
-        os.system('ewfacquire -t %s/%s -w -o 0 -C "%s" -e "%s" -E "%s" -D "Imaged to external HDD using Bad_apple." -N "Decrypted partition of exhibit %s from DFU REF: %s" -M physical -c none -P 512 -f encase6 -r 10 -b 64 -S 640.0MiB -m fixed -g 64 -v -d sha1 /dev/disk%s' % (outputLoc, fileName, caseNumber, examinerName, exhibitRef, exhibitRef, caseNumber, allocatedDisk))
+        os.system('ewfacquire -t %s/%s -w -o 0 -C "%s" -e "%s" -E "%s" -D "Imaged to external HDD using Bad_apple." -N "Decrypted partition of exhibit %s from DFU REF: %s" -M physical -c none -P 512 -f encase6 -r 10 -b 64 -S 640.0MiB -m fixed -g 64 -v -d sha1 /dev/disk%s' % (outputLoc, fileName, self.caseNumber, self.examinerName, self.exhibitRef, self.exhibitRef, self.caseNumber, self.allocatedDisk))
         #Prints the acquisition report to a log.
         reportCommand = subprocess.Popen('ewfinfo -d dm %s/%s.E01' % (outputLoc, fileName), shell=True, stdout=subprocess.PIPE).stdout
         reportOutput = reportCommand.read()
@@ -250,5 +244,3 @@ app = apple()
 app.userInfo()
 #Clearing the screen.
 os.system('clear')
-#Calling the mountDisk Function.
-#mountDisk()
