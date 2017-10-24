@@ -12,7 +12,7 @@ This script will only work for OS X images which have been converted to .dd (the
 
 | Dependancies  | How to Install                 |
 | ------------- | ------------------------------ |
-| dc3dd         |  brew install libewf           |
+| libewf        | brew install libewf            |
 
 To Do
 ========
