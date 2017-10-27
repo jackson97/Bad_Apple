@@ -38,63 +38,44 @@ from Tkinter import *
 class apple:
 		   
     def userInfo(self):
-	
         root = Tk()
         root.title("Bad Apple - FileVault decrypter")
-    
-        root.geometry("450x165")
-
+        root.geometry("450x400")
         exam_name_label = Label(root, text="Examiner Name:")
         exam_name_label.pack()
-
         self.exam_name_text_box = Entry(root, bd=1)
         self.exam_name_text_box.pack()
-
         case_name_label = Label(root, text="Case Name:")
         case_name_label.pack()
-
         self.case_name_text_box = Entry(root, bd=1)
         self.case_name_text_box.pack()
-
         ex_ref_label = Label(root, text="Exhibit Ref:")
         ex_ref_label.pack()
-
         self.ex_ref_text_box = Entry(root, bd=1)
         self.ex_ref_text_box.pack()
-    
         but = Button(root, text='Start')
         but.bind("<Button-1>", self.save_case_info)
         but.pack()
-    
+        self.status_text_box = Text(root,bd=5)
+        self.status_text_box.pack(ipady=100, ipadx=100)
+        self.status_text_box.insert(INSERT, "Welcome to Bad Apple version 1.0\n")
+        self.status_text_box.insert(INSERT, "Enter details, press start, select dmg file...")
         root.mainloop()
 
     def save_case_info(self, event):
-        
-        #Alternative solution rather than using "Global"
         self.examinerName = (self.exam_name_text_box.get())
         self.caseNumber = (self.case_name_text_box.get())
         self.exhibitRef = (self.ex_ref_text_box.get())
-    
-        #user no longer required to be prompted to seperate using "-"
         if "/" in self.exhibitRef:
-            self.exhibitRef = self.exhibitRef.replace("/","-")
-            
+            self.exhibitRef = self.exhibitRef.replace("/","-")     
         if "/" in self.caseNumber:
             self.caseNumber = self.caseNumber.replace("/","-")
-        
-        #These print statements are an example of how to call the variables
-	    print("Case Info:")
-        print(self.caseNumber)
-        print(self.exhibitRef)
-        print(self.examinerName)
-        print("")
-        
         if _platform == "darwin":
             self.mountDisk()
         else:
-            self.popupBonus()
+            self.popupWarning()
 
-    def popupBonus(self):
+    def popupWarning(self):
         toplevel = Toplevel()
         toplevel.title("WARNING!")
         toplevel.geometry("350x80")
@@ -102,49 +83,47 @@ class apple:
         label1.pack()
         label1 = Label(toplevel, text="Unable to continue...", height=0, width=50)
         label1.pack()
-        button = Button (toplevel, text="Close", command=toplevel.destroy)
+        button = Button(toplevel, text="Close", command=toplevel.destroy)
         button.pack()
 
     def mountDisk(self):
-        global GUID
-        loop = True
-        #Prompts the user to select a .dmg file they would like to decrypt and assigns the path to a variable.
-        print('Please select the .dmg file you would like to decrypt.')
         diskToMount = tkFileDialog.askopenfilename()
-        #Printing the .dmg path for testing purposes.
-        print (diskToMount)
-        #Attaching the specified .dmg file to the systme witghout mounting it to preserve the integrity of the evidence.
+        self.status_text_box.delete('1.0', END)
+        self.status_text_box.insert(INSERT, "Attaching dmg to the system without mounting it...\n\n")
+        #Attaching dmg file to the system without mounting it, to preserve the integrity of the evidence
         os.system('hdiutil attach -nomount %s' % (diskToMount))
+        self.status_text_box.insert(INSERT, "Checking current core storage volumes...\n")
+        self.status_text_box.insert(INSERT, "Searching for GUID of encrypted partition...\n\n")
         #Checks the current core storage volumes and finds the GUID of the encrypted partition.
         chkdiskCommand = subprocess.Popen('diskutil cs list', shell=True, stdout=subprocess.PIPE).stdout
         chkdiskOutput = chkdiskCommand.read()
         oldStdout = sys.stdout
-        with open('temp.txt', 'w') as t:
-            sys.stdout = t
-            print chkdiskOutput
+        with open('temp.txt', 'w') as fo:
+            fo.write(sys.stdout)
             sys.stdout = oldStdout
         with open('temp.txt', 'r') as GUIDlog:
             guidPattern = re.compile('^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$')
-            while (loop == True):
-                for line in GUIDlog:
-                    if 'Logical Volume ' in line:
-                        GUIDtemp = line.split('Logical Volume ')[1].rstrip()
-                        if (guidPattern.match(GUIDtemp)):
-                            GUID = str(GUIDtemp)
-                            #Once the GUID is found it is stored as a variable. A message is printed informing the user it has been found.
-                            print('Image mounted and locked partition found. GUID: %s' % (GUID))
-                            #Asks the user whether they would like to begin cracking? Error handling to be added in the future.
-                            startCracking = raw_input('Do you want to begin cracking? [Y/N]: ')
-                            while (loop == True): 
-                                if startCracking in ('y' or 'Y'):
-                                    self.passwordAttempts()
-                                else:
-                                    print('Thank you for using Bad_Apple')
-                                    quit()
-                        else:
-                            loop = True
-                    else:
-                        loop = True
+            for line in GUIDlog:
+                if 'Logical Volume ' in line:
+                    GUIDtemp = line.split('Logical Volume ')[1].rstrip()
+                    if (guidPattern.match(GUIDtemp)):
+                        self.GUID = str(GUIDtemp)
+                        #Once the GUID is found it is stored as a variable. A message is printed informing the user it has been found.
+                        self.status_text_box.insert(INSERT, "Locked partition found. GUID: %s' % (self.GUID)")
+                        #Asks the user whether they would like to begin cracking? Error handling to be added in the future.
+                        self.popupConfirm()
+                        
+    def popupConfirm(self, event):
+        toplevel = Toplevel()
+        toplevel.title("Commence Cracking")
+        toplevel.geometry("350x80")
+        label1 = Label(toplevel, text="Do you want to begin cracking?", height=0, width=50)
+        label1.pack()
+        start = Button(toplevel, text="Start")
+        start.bind("<Button-1>", self.popupConfirm)
+        cancel = Button(toplevel, text="Cancel", command=toplevel.destroy)
+        start.pack()
+        cancel.pack()
     
     def passwordAttempts(self):
         loop = True
@@ -249,7 +228,6 @@ class apple:
         quit()
 
 os.system('clear')
-print('Welcome to Bad_Apple\n')
 time.sleep(0.5)
 
 global loop
