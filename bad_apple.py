@@ -113,19 +113,19 @@ class apple:
                         #Asks the user whether they would like to begin cracking? Error handling to be added in the future.
                         self.popupConfirm()
                         
-    def popupConfirm(self, event):
+    def popupConfirm(self):
         toplevel = Toplevel()
         toplevel.title("Commence Cracking")
         toplevel.geometry("350x80")
         label1 = Label(toplevel, text="Do you want to begin cracking?", height=0, width=50)
-        label1.pack()
         start = Button(toplevel, text="Start")
-        start.bind("<Button-1>", self.popupConfirm)
+        start.bind("<Button-1>", self.passwordAttempts)
         cancel = Button(toplevel, text="Cancel", command=toplevel.destroy)
+        label1.pack()
         start.pack()
         cancel.pack()
     
-    def passwordAttempts(self):
+    def passwordAttempts(self, event):
         loop = True
         os.system('clear')
         print('''
