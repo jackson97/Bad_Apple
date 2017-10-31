@@ -217,7 +217,7 @@ class apple:
         reportCommand = subprocess.Popen('ewfinfo -d dm %s/%s.E01' % (outputLoc, fileName), shell=True, stdout=subprocess.PIPE).stdout
         reportOutput = reportCommand.read()
         oldStdout = sys.stdout
-        with open('"%s"-"%s"-Acquisition Log.txt' % (self.caseNumber, self.exhibitRef), 'w') as t:
+        with open('%s-%s-Acquisition Log.txt' % (self.caseNumber, self.exhibitRef), 'w') as t:
             sys.stdout = t
             print reportOutput
             sys.stdout = oldStdout
