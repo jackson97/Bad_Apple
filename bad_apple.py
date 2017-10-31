@@ -95,11 +95,11 @@ class apple:
         self.status_text_box.insert(INSERT, "Checking current core storage volumes...\n")
         self.status_text_box.insert(INSERT, "Searching for GUID of encrypted partition...\n\n")
         #Checks the current core storage volumes and finds the GUID of the encrypted partition.
+	oldStdout = sys.stdout
         chkdiskCommand = subprocess.Popen('diskutil cs list', shell=True, stdout=subprocess.PIPE).stdout
         chkdiskOutput = chkdiskCommand.read()
-        oldStdout = sys.stdout
         with open('temp.txt', 'w') as fo:
-            fo.write(sys.stdout)
+            fo.write(chkdiskOutput)
             sys.stdout = oldStdout
         with open('temp.txt', 'r') as GUIDlog:
             guidPattern = re.compile('^[{(]?[0-9A-F]{8}[-]?([0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$')
